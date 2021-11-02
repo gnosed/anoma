@@ -36,6 +36,7 @@ const CONNECTIONS_COUNTER: &str = "connections/counter";
 const CHANNELS_COUNTER: &str = "channelEnds/counter";
 const CAPABILITIES_INDEX: &str = "capabilities/index";
 const CAPABILITIES: &str = "capabilities";
+const EVENT: &str = "event";
 
 #[allow(missing_docs)]
 #[derive(Error, Debug)]
@@ -65,6 +66,7 @@ pub enum IbcPrefix {
     Commitment,
     Receipt,
     Ack,
+    Event,
     Unknown,
 }
 
@@ -86,6 +88,7 @@ pub fn ibc_prefix(key: &Key) -> IbcPrefix {
                 "commitments" => IbcPrefix::Commitment,
                 "receipts" => IbcPrefix::Receipt,
                 "acks" => IbcPrefix::Ack,
+                "event" => IbcPrefix::Event,
                 _ => IbcPrefix::Unknown,
             }
         }
@@ -276,6 +279,12 @@ pub fn ack_key(
     };
     ibc_key(path.to_string())
         .expect("Creating a key for the ack shouldn't fail")
+}
+
+/// Returns a key of an IBC event
+pub fn event_key() -> Key {
+    let path = EVENT.to_owned();
+    ibc_key(path).expect("Creating a key for the IBC event shouldn't fail")
 }
 
 /// Returns a client ID from the given client key `#IBC/clients/<client_id>`
