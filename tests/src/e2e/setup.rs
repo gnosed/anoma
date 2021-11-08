@@ -125,6 +125,8 @@ pub fn network(
             "--chain-prefix",
             "e2e-test",
             "--localhost",
+            "--wasm-checksums-path",
+            &working_dir.join("wasm/checksums.json").to_string_lossy(),
         ],
         Some(5),
         &working_dir,
