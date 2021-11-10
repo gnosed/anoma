@@ -12,8 +12,6 @@ use ibc::core::ics02_client::client_state::AnyClientState;
 #[cfg(not(feature = "ABCI"))]
 use ibc::core::ics02_client::context::ClientReader;
 #[cfg(not(feature = "ABCI"))]
-use ibc::core::ics02_client::error::Error as Ics02Error;
-#[cfg(not(feature = "ABCI"))]
 use ibc::core::ics02_client::height::Height;
 #[cfg(not(feature = "ABCI"))]
 use ibc::core::ics03_connection::connection::{
@@ -39,8 +37,6 @@ use ibc_abci::core::ics02_client::client_consensus::{
 use ibc_abci::core::ics02_client::client_state::AnyClientState;
 #[cfg(feature = "ABCI")]
 use ibc_abci::core::ics02_client::context::ClientReader;
-#[cfg(feature = "ABCI")]
-use ibc_abci::core::ics02_client::error::Error as Ics02Error;
 #[cfg(feature = "ABCI")]
 use ibc_abci::core::ics02_client::height::Height;
 #[cfg(feature = "ABCI")]
@@ -169,21 +165,13 @@ where
         match conn.state() {
             State::Init => {
                 let client_id = conn.client_id();
-                let not_found_error = Ics03Error::ics02_client(
-                    Ics02Error::client_not_found(client_id.clone()),
-                );
                 ConnectionReader::client_state(self, client_id).map_err(
-                    |e| match e {
-                        not_found_error => Error::InvalidClient(format!(
+                    |_| {
+                        Error::InvalidClient(format!(
                             "The client state for the connection doesn't \
                              exist: ID {}",
                             conn_id,
-                        )),
-                        _ => Error::InvalidClient(format!(
-                            "Reading the client state for the connection \
-                             failed: ID {}",
-                            conn_id,
-                        )),
+                        ))
                     },
                 )?;
                 let data = ConnectionOpenInitData::try_from_slice(tx_data)?;
@@ -193,7 +181,7 @@ where
             }
             State::TryOpen => {
                 let data = ConnectionOpenTryData::try_from_slice(tx_data)?;
-                self.verify_connection_try_proof(conn, &data);
+                self.verify_connection_try_proof(conn, &data)?;
                 let event = make_open_try_connection_event(conn_id, &data);
                 self.check_emitted_event(event)
                     .map_err(|e| Error::IbcEvent(e.to_string()))
@@ -265,7 +253,7 @@ where
         let proofs = data.proofs()?;
         match verify_proofs(
             self,
-            Some(data.client_state),
+            Some(data.client_state.clone()),
             &conn,
             &expected_conn,
             &proofs,
@@ -314,7 +302,7 @@ where
         let proofs = data.proofs()?;
         match verify_proofs(
             self,
-            Some(data.client_state),
+            Some(data.client_state.clone()),
             &conn,
             &expected_conn,
             &proofs,
