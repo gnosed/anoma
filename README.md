@@ -28,7 +28,7 @@ make install
 
 After installation, the main `anoma` executable will be available on path.
 
-To find how to use it, check out the [User Guide section of the docs](https://docs.anoma.network/master/user-guide/).
+To find how to use it, check out the [User Guide section of the docs](https://docs.anoma.network/v0.2.0/user-guide/).
 
 ## ⚙️ Development
 
